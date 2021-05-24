@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message User {
+    string name = 1;
+    int64 favorite_number = 2;
+    string favorite_color = 3;
+    string twitter_handle = 4;
+}
