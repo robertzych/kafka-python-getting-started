@@ -59,5 +59,42 @@ Or to upgrade protoc: `brew upgrade protobuf`
 ### alter topic with schema validation
 `kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name mytopic_protobuf --add-config confluent.value.schema.validation=true`
 
+## ksqlDB
+
+### table-table join
+`docker-compose exec ksqldb-cli ksql http://ksqldb-server:8088`
+`set 'auto.offset.reset'='earliest';`
+TODO: what does this do? Disables caching to get immediate results? What happens if I don't set this?
+`set 'cache.max.bytes.buffering'='0';` 
+`CREATE TABLE left_table (a VARCHAR PRIMARY KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`INSERT INTO left_table (a, b) VALUES ('1', 'one');`
+`INSERT INTO right_table (c, d) values ('1', 'two');`
+`INSERT INTO right_table (c, d) values ('1', 'three');`
+`INSERT INTO left_table (a, b) VALUES ('1', 'four');`
+`INSERT INTO left_table (a, b) VALUES ('2', 'five');`
+`INSERT INTO right_table (c, d) values ('2', 'six');`
+`INSERT INTO right_table (c, d) values ('2', 'seven');`
+`INSERT INTO left_table (a, b) VALUES ('2', 'eight');`
+`SELECT * FROM left_table JOIN right_table ON a=c EMIT CHANGES;`
+This output stream produces a result whenever a new event with a matching key is inserted
+TODO: show the live results of the output stream side-by-side with the inserts using asciinema
+
+### stream-table join
+`DROP TABLE left_table;`
+`DROP TABLE right_table;`
+`CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`CREATE STREAM left_stream (a VARCHAR KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`INSERT INTO left_stream (a,b) VALUES ('1', 'one');`
+`INSERT INTO right_table (c,d) VALUES ('1', 'two');`
+`INSERT INTO left_stream (a,b) VALUES ('1', 'three');`
+`INSERT INTO left_stream (a,b) VALUES ('1', 'four');`
+`INSERT INTO right_table (c,d) VALUES ('2', 'five');`
+`INSERT INTO left_stream (a,b) VALUES ('2', 'six');`
+`SELECT * FROM left_stream JOIN right_table ON a=c EMIT CHANGES;`
+TODO: This output stream produces...
 ## resources
 https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
+"Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
+https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb
+https://docs.ksqldb.io/en/latest/reference/serialization/
