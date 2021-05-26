@@ -98,10 +98,28 @@ This output stream produces a result whenever a new event arrives in left_stream
 
 
 ### stream-stream join
-TODO: drop left_stream, drop right_table, delete left topic, delete right topic
-TODO: create left_stream and right_stream
-TODO: insert into left_stream and right_stream
-`SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.a = r.c;`
+`DROP STREAM left_stream;`
+`DROP TABLE right_table;`
+`kafka-topics --zookeeper 127.0.0.1 --delete -topic left`
+`kafka-topics --zookeeper 127.0.0.1 --delete -topic right`
+`CREATE STREAM left_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`CREATE STREAM right_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
+`INSERT INTO left_stream (id,value) VALUES ('1', 'one');`
+`INSERT INTO right_stream (id,value) VALUES ('1', 'two');`
+`INSERT INTO left_stream (id,value) VALUES ('1', 'three');`
+`INSERT INTO left_stream (id,value) VALUES ('1', 'four');`
+`INSERT INTO right_stream (id,value) VALUES ('2', 'five');`
+`INSERT INTO left_stream (id,value) VALUES ('2', 'six');`
+`SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.id = r.id EMIT CHANGES;`
+This output stream produces a result whenever a new event arrives in left_stream. The event in left_stream is matched by key to the latest value from right_table that occurred within the window duration. To see the effects of the window, wait at least 5 minutes, and run...
+`INSERT INTO left_stream (id,value) VALUES ('2', 'seven');`
+`SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.id = r.id EMIT CHANGES;`
+Event seven wasn't matched with the latest event in right_stream as the latest event in right_stream is no longer in the window. Now if you immediately run...
+INSERT INTO right_stream (id,value) VALUES ('2', 'eight');
+`SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.id = r.id EMIT CHANGES;`
+Event seven is now matching with event eight as now both were captured within the 5 minute window.
+
+
 ## resources
 https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
 "Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
