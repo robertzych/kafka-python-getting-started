@@ -83,6 +83,8 @@ TODO: show the live results of the output stream side-by-side with the inserts u
 ### stream-table join
 `DROP TABLE left_table;`
 `DROP TABLE right_table;`
+`kafka-topics --zookeeper 127.0.0.1 --delete -topic left`
+`kafka-topics --zookeeper 127.0.0.1 --delete -topic right`
 `CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
 `CREATE STREAM left_stream (a VARCHAR KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);`
 `INSERT INTO left_stream (a,b) VALUES ('1', 'one');`
@@ -92,7 +94,14 @@ TODO: show the live results of the output stream side-by-side with the inserts u
 `INSERT INTO right_table (c,d) VALUES ('2', 'five');`
 `INSERT INTO left_stream (a,b) VALUES ('2', 'six');`
 `SELECT * FROM left_stream JOIN right_table ON a=c EMIT CHANGES;`
-TODO: This output stream produces...
+This output stream produces a result whenever a new event arrives in left_stream. The event in left_stream is matched by key to the latest value from right_table.
+
+
+### stream-stream join
+TODO: drop left_stream, drop right_table, delete left topic, delete right topic
+TODO: create left_stream and right_stream
+TODO: insert into left_stream and right_stream
+`SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.a = r.c;`
 ## resources
 https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
 "Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
