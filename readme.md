@@ -117,7 +117,7 @@ This output stream produces a result whenever a new event arrives in left_stream
 Event seven wasn't matched with the latest event in right_stream as the latest event in right_stream is no longer in the window. Now if you immediately run...
 INSERT INTO right_stream (id,value) VALUES ('2', 'eight');
 `SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 5 minutes ON l.id = r.id EMIT CHANGES;`
-Event seven is now matching with event eight as now both were captured within the 5 minute window.
+Event seven is now matching with event eight as now both were captured within the 5-minute window.
 
 
 ## resources
