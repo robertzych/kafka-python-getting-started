@@ -5,7 +5,7 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.serialization import StringSerializer
 
-from protobuf.user_pb2 import User
+from examples.protobuf.user_pb2 import User
 
 
 def produce_protobuf():

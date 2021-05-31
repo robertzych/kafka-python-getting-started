@@ -2,7 +2,7 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.json_schema import JSONDeserializer
 from confluent_kafka.serialization import StringDeserializer
 
-from protobuf.user_pb2 import User
+from examples.protobuf.user_pb2 import User
 
 schema = """
 {
@@ -27,13 +27,9 @@ schema = """
     "twitter_handle": {
       "description": "User's twitter handle",
       "type": "string"
-    },
-    "required_field": {
-      "description": "Just to demo the issue with required fields",
-      "type": "string"
     }
   },
-  "required": ["name", "favorite_number", "favorite_color", "twitter_handle", "required_field"]
+  "required": ["name", "favorite_number", "favorite_color", "twitter_handle"]
 }
 """
 
@@ -68,7 +64,7 @@ def consume_json():
 
             user = msg.value()
             if user is not None:
-                print(f'User name"{user.name}, '
+                print(f'User name: {user.name}, '
                       f'favorite number:{user.favorite_number}, '
                       f'favorite color:{user.favorite_color}, '
                       f'twitter handle:{user.twitter_handle}')

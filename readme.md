@@ -1,65 +1,49 @@
 # kafka-python-getting-started
 
-## kafka
+## python setup
+brew install pipenv  
+pipenv install
+
+## kafka setup
 docker-compose up -d
 
-docker exec -it broker bash, kafka-{tab completion}
-
-kafka-topics --zookeeper 127.0.0.1 --create -topic mytopic --partitions 6 --replication-factor 1
-kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic
-
-kafka-topics --zookeeper 127.0.0.1 --create -topic mytopic_protobuf --partitions 6 --replication-factor 1
-kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
-
-kafka-topics --zookeeper 127.0.0.1 --create -topic twitter_tweets_protobuf --partitions 6 --replication-factor 1
-kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic twitter_tweets_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
+To list all the kafka-* cli tools:  
+docker exec -it broker bash
+ls /bin | grep kafka-
 
 
-## python
-pip3 install pipenv  # installs pipenv
-pipenv --three  # creates Pipfile
-pipenv run python -V  # reports python version used in venv
-pipenv install confluent-kafka  # install the latest version (1.7.0)
-pipenv install requests  # required to use schema registry
-pipenv install jsonschema
-pipenv install protobuf
-pipenv run pip list  # reports all packages+versions used in venv
-
-
-## json
+## json examples
+To create a topic with schema validation enabled:
 docker exec -it broker kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 \
 --partitions 1 --topic user_json \
---config confluent.value.schema.validation=true
-docker exec -it broker kafka-consumer-groups --bootstrap-server localhost:9092 --group json-consumer-group-1 --delete-offsets --execute --topic user_json
-confluent_kafka.error.ValueDeserializationError: KafkaError{code=_VALUE_DESERIALIZATION,val=-159,str="'twitter_handle' is a required property"}
-docker exec -it broker kafka-topics --delete --bootstrap-server localhost:9092 \
---topic user_json
-When adding a new required field to an existing schema:
+--config confluent.value.schema.validation=true  
+
+export PYTHONPATH="${PYTHONPATH}:${PWD}"  
+pipenv run python examples/json/producing_json.py  
+pipenv run python examples/json/consuming_json.py  
+press ctrl+c to close consuming_json.py  
+Add "required_field" to the required list on producing_json.py:39  
+pipenv run python examples/json/producing_json.py  
+The following error is expected:
 confluent_kafka.error.ValueSerializationError: KafkaError{code=_VALUE_SERIALIZATION,val=-161,str="Schema being registered is incompatible with an earlier schema for subject "user_json-value" (HTTP status code 409, SR code 409)"}
 
 
-
-## protobuf
-to regenerate protobuf classes you ust first install the protobuf compiler (protoc)
-https://developers.google.com/protocol-buffers/docs/pythontutorial
-https://github.com/protocolbuffers/protobuf#protocol-compiler-installation
-To install protoc:brew install protobuf 
-Or to upgrade protoc: brew upgrade protobuf
-protoc --version  # reports libprotoc 3.17.0
-protoc -I=. --python_out=. ./user.proto
-
-kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --delete-offsets --execute --topic mytopic_protobuf
-kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --describe
-
-### create topic with schema validation
+## protobuf examples
 docker exec -it broker kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 \
 --partitions 1 --topic mytopic_protobuf \
 --config confluent.value.schema.validation=true
 
-### alter topic with schema validation
-kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name mytopic_protobuf --add-config confluent.value.schema.validation=true
+export PYTHONPATH="${PYTHONPATH}:${PWD}"
+pipenv run python examples/protobuf/producing_protobuf.py
+pipenv run python examples/protobuf/consuming_protobuf.py
+press ctrl+c to close consuming_protobuf.py  
 
-## ksqlDB
+To generate python classes from protobuf (.proto) files:  
+brew install protobuf  # installs the protobuf compiler (protoc)
+protoc -I=. --python_out=. ./user.proto  
+
+
+## ksqlDB examples
 
 ### table-table join
 docker-compose exec ksqldb-cli ksql http://ksqldb-server:8088  
@@ -114,7 +98,6 @@ DROP TABLE right_table;
 docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left  
 docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
-
 ### stream-stream join
 CREATE STREAM left_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
 CREATE STREAM right_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
@@ -150,7 +133,24 @@ docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
 
 ## resources
-https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
+https://developers.google.com/protocol-buffers/docs/pythontutorial
 https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb
 https://docs.ksqldb.io/en/latest/  
 "Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
+
+
+## misc
+docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic mytopic --partitions 6 --replication-factor 1
+docker exec -it broker kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic
+
+docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic mytopic_protobuf --partitions 6 --replication-factor 1
+docker exec -it broker kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
+
+docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic twitter_tweets_protobuf --partitions 6 --replication-factor 1
+docker exec -it broker kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic twitter_tweets_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
+
+docker exec -it broker kafka-consumer-groups --bootstrap-server localhost:9092 --group json-consumer-group-1 --delete-offsets --execute --topic user_json
+docker exec -it broker kafka-topics --delete --bootstrap-server localhost:9092 --topic user_json
+
+kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --delete-offsets --execute --topic mytopic_protobuf
+kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --describe

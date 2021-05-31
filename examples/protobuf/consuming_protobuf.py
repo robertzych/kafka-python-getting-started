@@ -2,7 +2,7 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.protobuf import ProtobufDeserializer
 from confluent_kafka.serialization import StringDeserializer
 
-from protobuf.user_pb2 import User
+from examples.protobuf.user_pb2 import User
 
 
 def consume_protobuf():

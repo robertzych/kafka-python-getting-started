@@ -5,7 +5,7 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 from confluent_kafka.serialization import StringSerializer
 
-from protobuf.user_pb2 import User
+from examples.protobuf.user_pb2 import User
 
 schema = """
 {
@@ -36,7 +36,7 @@ schema = """
       "type": "string"
     }
   },
-  "required": ["name", "favorite_number", "favorite_color", "twitter_handle", "required_field"]
+  "required": ["name", "favorite_number", "favorite_color", "twitter_handle"]
 }
 """
 
