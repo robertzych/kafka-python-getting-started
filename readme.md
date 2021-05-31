@@ -62,98 +62,95 @@ kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --e
 ## ksqlDB
 
 ### table-table join
-docker-compose exec ksqldb-cli ksql http://ksqldb-server:8088
-set 'auto.offset.reset'='earliest';
+docker-compose exec ksqldb-cli ksql http://ksqldb-server:8088  
+set 'auto.offset.reset'='earliest';  
 
-TODO: what does this do? Disables caching to get immediate results? What happens if I don't set this?
-set 'cache.max.bytes.buffering'='0'; 
+CREATE TABLE left_table (a VARCHAR PRIMARY KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
+CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
+CREATE TABLE TT_JOIN AS SELECT * FROM left_table JOIN right_table ON a=c EMIT CHANGES;  
 
-CREATE TABLE left_table (a VARCHAR PRIMARY KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
-CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
-
-CREATE TABLE TT_JOIN AS SELECT * FROM left_table JOIN right_table ON a=c EMIT CHANGES;
-SELECT * FROM TT_JOIN EMIT CHANGES;
+SELECT * FROM TT_JOIN EMIT CHANGES;  
 Using the `CREATE TABLE AS SELECT` syntax we’ve generated a new table that is updated whenever a new record with a matching key is inserted.
 
-To observe the live updates, open a new window a run the following inserts one statement at a time.
-INSERT INTO left_table (a, b) VALUES ('1', 'one');
-INSERT INTO right_table (c, d) values ('1', 'two');
-INSERT INTO right_table (c, d) values ('1', 'three');
-INSERT INTO left_table (a, b) VALUES ('1', 'four');
-INSERT INTO left_table (a, b) VALUES ('2', 'five');
-INSERT INTO right_table (c, d) values ('2', 'six');
-INSERT INTO right_table (c, d) values ('2', 'seven');
-INSERT INTO left_table (a, b) VALUES ('2', 'eight');
+To observe the live updates, open a new window a run the following inserts one statement at a time.  
+INSERT INTO left_table (a, b) VALUES ('1', 'one');  
+INSERT INTO right_table (c, d) values ('1', 'two');  
+INSERT INTO right_table (c, d) values ('1', 'three');  
+INSERT INTO left_table (a, b) VALUES ('1', 'four');  
+INSERT INTO left_table (a, b) VALUES ('2', 'five');  
+INSERT INTO right_table (c, d) values ('2', 'six');  
+INSERT INTO right_table (c, d) values ('2', 'seven');  
+INSERT INTO left_table (a, b) VALUES ('2', 'eight');  
 
-TERMINATE CTAS_TT_JOIN_5;
-DROP TABLE TT_JOIN;
-DROP TABLE left_table;
-DROP TABLE right_table;
-docker exec -it broker bash
-docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left
+TERMINATE CTAS_TT_JOIN_5;  
+DROP TABLE TT_JOIN;  
+DROP TABLE left_table;  
+DROP TABLE right_table;  
+docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left  
 docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
 
 ### stream-table join
-CREATE STREAM left_stream (a VARCHAR KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
-CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
+CREATE STREAM left_stream (a VARCHAR KEY, b VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
+CREATE TABLE right_table (c VARCHAR PRIMARY KEY, d VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
 
-CREATE STREAM ST_JOIN AS SELECT * FROM left_stream JOIN right_table ON a=c EMIT CHANGES;
-SELECT * FROM ST_JOIN EMIT CHANGES;
+CREATE STREAM ST_JOIN AS SELECT * FROM left_stream JOIN right_table ON a=c EMIT CHANGES;  
+SELECT * FROM ST_JOIN EMIT CHANGES;  
 Using the `CREATE STREAM AS SELECT` syntax we've generated a new stream that produces a result whenever a new event arrives in left_stream. 
 The event in left_stream is matched by key to the latest value from right_table.
 
-To observe the live updates, open a new window a run the following inserts one statement at a time.
-INSERT INTO left_stream (a,b) VALUES ('1', 'one');
-INSERT INTO right_table (c,d) VALUES ('1', 'two');
-INSERT INTO left_stream (a,b) VALUES ('1', 'three');
-INSERT INTO left_stream (a,b) VALUES ('1', 'four');
-INSERT INTO right_table (c,d) VALUES ('2', 'five');
+To observe the live updates, open a new window a run the following inserts one statement at a time.  
+INSERT INTO left_stream (a,b) VALUES ('1', 'one');  
+INSERT INTO right_table (c,d) VALUES ('1', 'two');  
+INSERT INTO left_stream (a,b) VALUES ('1', 'three');  
+INSERT INTO left_stream (a,b) VALUES ('1', 'four');  
+INSERT INTO right_table (c,d) VALUES ('2', 'five');  
 INSERT INTO left_stream (a,b) VALUES ('2', 'six');
 
-TERMINATE CSAS_ST_JOIN_17;
-DROP STREAM ST_JOIN;
-DROP STREAM left_stream;
-DROP TABLE right_table;
-docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left
+TERMINATE CSAS_ST_JOIN_17;  
+DROP STREAM ST_JOIN;  
+DROP STREAM left_stream;  
+DROP TABLE right_table;  
+docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left  
 docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
 
 ### stream-stream join
-CREATE STREAM left_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
-CREATE STREAM right_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);
+CREATE STREAM left_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='left', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
+CREATE STREAM right_stream (id VARCHAR KEY, value VARCHAR) WITH (KAFKA_TOPIC='right', KEY_FORMAT='JSON', VALUE_FORMAT='JSON', PARTITIONS=2, REPLICAS=1);  
 
-CREATE STREAM SS_JOIN AS SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 1 minute ON l.id = r.id EMIT CHANGES;
-SELECT * FROM SS_JOIN EMIT CHANGES; 
+CREATE STREAM SS_JOIN AS SELECT * FROM left_stream AS l JOIN right_stream AS r WITHIN 1 minute ON l.id = r.id EMIT CHANGES;  
+SELECT * FROM SS_JOIN EMIT CHANGES;   
 This output stream produces a result whenever a new event arrives in left_stream. 
 The event in left_stream is matched by key to the latest value from right_table that occurred within the window duration. 
 To see the effects of the window, wait at least 1 minute between executing a subsequent insert statement.
 
-In a new window a run the following inserts one statement at a time.
-INSERT INTO left_stream (id,value) VALUES ('1', 'one');
-INSERT INTO right_stream (id,value) VALUES ('1', 'two');
-INSERT INTO left_stream (id,value) VALUES ('1', 'three');
-INSERT INTO left_stream (id,value) VALUES ('1', 'four');
-INSERT INTO right_stream (id,value) VALUES ('2', 'five');
-INSERT INTO left_stream (id,value) VALUES ('2', 'six');
-Wait 1 minute
-INSERT INTO left_stream (id,value) VALUES ('2', 'seven');
-Event seven wasn't matched with the latest event in right_stream as the latest event in right_stream is no longer in the window. 
-Now if you immediately run...
-INSERT INTO right_stream (id,value) VALUES ('2', 'eight');
+In a new window a run the following inserts one statement at a time.  
+INSERT INTO left_stream (id,value) VALUES ('1', 'one');  
+INSERT INTO right_stream (id,value) VALUES ('1', 'two');  
+INSERT INTO left_stream (id,value) VALUES ('1', 'three');  
+INSERT INTO left_stream (id,value) VALUES ('1', 'four');  
+INSERT INTO right_stream (id,value) VALUES ('2', 'five');  
+INSERT INTO left_stream (id,value) VALUES ('2', 'six');  
+Wait 1 minute  
+INSERT INTO left_stream (id,value) VALUES ('2', 'seven');  
+Event seven wasn't matched with the latest event in right_stream as the latest event in right_stream is no longer in the window.   
+Now if you immediately run...  
+INSERT INTO right_stream (id,value) VALUES ('2', 'eight');  
 Event seven is now matching with event eight as now both were captured within the 1-minute window.
 
-TERMINATE CSAS_SS_JOIN_35;
-DROP STREAM SS_JOIN;
-DROP STREAM left_stream;
-DROP STREAM right_stream;
-exit
-docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left
-docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
+Cleaning up...  
+TERMINATE CSAS_SS_JOIN_35;  
+DROP STREAM SS_JOIN;  
+DROP STREAM left_stream;  
+DROP STREAM right_stream;  
+exit  
+docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic left  
+docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right  
 
 
 ## resources
 https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
 https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb
-https://docs.ksqldb.io/en/latest/
+https://docs.ksqldb.io/en/latest/  
 "Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
