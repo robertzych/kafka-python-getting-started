@@ -1,15 +1,16 @@
 # kafka-python-getting-started
 
-## python setup
-brew install pipenv  
-pipenv install
-
 ## kafka setup
 docker-compose up -d
 
 To list all the kafka-* cli tools:  
-docker exec -it broker bash
-ls /bin | grep kafka-
+docker exec -it broker bash  
+ls /bin | grep kafka-  
+
+
+## python setup
+brew install pipenv  
+pipenv install
 
 
 ## json examples
@@ -142,24 +143,7 @@ docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
 
 ## resources
-https://developers.google.com/protocol-buffers/docs/pythontutorial
-https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb
+https://developers.google.com/protocol-buffers/docs/pythontutorial  
+https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb  
 https://docs.ksqldb.io/en/latest/  
-"Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)
-
-
-## misc
-docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic mytopic --partitions 6 --replication-factor 1
-docker exec -it broker kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic
-
-docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic mytopic_protobuf --partitions 6 --replication-factor 1
-docker exec -it broker kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic mytopic_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
-
-docker exec -it broker kafka-topics --zookeeper zookeeper --create -topic twitter_tweets_protobuf --partitions 6 --replication-factor 1
-docker exec -it broker kafka-protobuf-console-consumer --bootstrap-server 127.0.0.1:9092 --topic twitter_tweets_protobuf --from-beginning --property schema.registry.url=http://localhost:8081
-
-docker exec -it broker kafka-consumer-groups --bootstrap-server localhost:9092 --group json-consumer-group-1 --delete-offsets --execute --topic user_json
-docker exec -it broker kafka-topics --delete --bootstrap-server localhost:9092 --topic user_json
-
-kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --delete-offsets --execute --topic mytopic_protobuf
-kafka-consumer-groups --bootstrap-server localhost:9092 --group consumer-group-1 --describe
+"Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)  
