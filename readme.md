@@ -33,14 +33,14 @@ docker exec -it broker kafka-topics --create --bootstrap-server localhost:9092 -
 --partitions 1 --topic mytopic_protobuf \
 --config confluent.value.schema.validation=true
 
-export PYTHONPATH="${PYTHONPATH}:${PWD}"
-pipenv run python examples/protobuf/producing_protobuf.py
-pipenv run python examples/protobuf/consuming_protobuf.py
+export PYTHONPATH="${PYTHONPATH}:${PWD}"  
+pipenv run python examples/protobuf/producing_protobuf.py  
+pipenv run python examples/protobuf/consuming_protobuf.py  
 press ctrl+c to close consuming_protobuf.py  
 
 To generate python classes from protobuf (.proto) files:  
-brew install protobuf  # installs the protobuf compiler (protoc)
-protoc -I=. --python_out=. ./user.proto  
+brew install protobuf  # installs the protobuf compiler (protoc)  
+protoc -I=. --python_out=. ./user.proto    # generates user_pb2.py from user.proto
 
 
 ## ksqlDB examples
@@ -65,8 +65,8 @@ INSERT INTO right_table (c, d) values ('2', 'six');
 INSERT INTO right_table (c, d) values ('2', 'seven');  
 INSERT INTO left_table (a, b) VALUES ('2', 'eight');  
 
-Cleaning up...
-Press ctrl+c in the first window to terminate the query.
+Cleaning up...  
+Press ctrl+c in the first window to terminate the query.  
 TERMINATE CTAS_TT_JOIN_5;  
 DROP TABLE TT_JOIN;  
 DROP TABLE left_table;  
