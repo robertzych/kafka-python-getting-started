@@ -59,6 +59,7 @@ def produce_json():
     schema_registry_conf = {'url': 'http://localhost:8081'}
     schema_registry_client = SchemaRegistryClient(schema_registry_conf)
     json_serializer = JSONSerializer(schema, schema_registry_client, user_to_dict)
+    # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html
     p = SerializingProducer({
         'bootstrap.servers': 'localhost:9092',
         'key.serializer': StringSerializer('utf_8'),

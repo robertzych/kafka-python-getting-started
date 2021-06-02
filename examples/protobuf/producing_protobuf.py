@@ -12,8 +12,7 @@ def produce_protobuf():
     schema_registry_conf = {'url': 'http://localhost:8081'}
     schema_registry_client = SchemaRegistryClient(schema_registry_conf)
     protobuf_serializer = ProtobufSerializer(User, schema_registry_client)
-    # TODO: add acks all to config below
-    # TODO: add link to producer configs doc
+    # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html
     p = SerializingProducer({
         'bootstrap.servers': 'localhost:9092',
         'key.serializer': StringSerializer('utf_8'),

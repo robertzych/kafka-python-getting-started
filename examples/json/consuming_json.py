@@ -47,6 +47,7 @@ def dict_to_user(obj, ctx):
 def consume_json():
     json_deserializer = JSONDeserializer(schema, from_dict=dict_to_user)
     string_deserializer = StringDeserializer('utf_8')
+    # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html
     consumer = DeserializingConsumer({
         'bootstrap.servers': 'localhost:9092',
         'key.deserializer': string_deserializer,

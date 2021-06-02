@@ -8,7 +8,7 @@ from examples.protobuf.user_pb2 import User
 def consume_protobuf():
     protobuf_deserializer = ProtobufDeserializer(User)
     string_deserializer = StringDeserializer('utf_8')
-    # TODO: add link to consumer configs doc
+    # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html
     consumer = DeserializingConsumer({
         'bootstrap.servers': 'localhost:9092',
         'key.deserializer': string_deserializer,
