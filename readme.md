@@ -25,8 +25,8 @@ pipenv run python examples/json/consuming_json.py
 press ctrl+c to close consuming_json.py  
 Add "required_field" to the required list on producing_json.py:39  
 pipenv run python examples/json/producing_json.py  
-The following error is expected:
-confluent_kafka.error.ValueSerializationError: KafkaError{code=_VALUE_SERIALIZATION,val=-161,str="Schema being registered is incompatible with an earlier schema for subject "user_json-value" (HTTP status code 409, SR code 409)"}
+The following error is expected:  
+confluent_kafka.error.ValueSerializationError: KafkaError{code=_VALUE_SERIALIZATION,val=-161,str="Schema being registered is incompatible with an earlier schema for subject "user_json-value" (HTTP status code 409, SR code 409)"}  
 
 
 ## protobuf examples
@@ -143,7 +143,8 @@ docker exec -it broker kafka-topics --zookeeper zookeeper --delete -topic right
 
 
 ## resources
-https://developers.google.com/protocol-buffers/docs/pythontutorial  
-https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb  
+https://github.com/confluentinc/confluent-kafka-python  
 https://docs.ksqldb.io/en/latest/  
+https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html#step-4-create-and-write-to-a-stream-and-table-using-ksqldb  
 "Temporal-Joins in Kafka Streams and ksqlDB" by Matthias Sax (Kafka Summit Europe 2021)  
+https://developers.google.com/protocol-buffers/docs/pythontutorial  
